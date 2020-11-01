@@ -49,12 +49,16 @@ export default class Queue {
 
     const batch = [...this.#queue];
     const payload = { batch, context: this.#config.context };
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(this.#config.options.headers || {}),
+    };
 
     try {
       const response = await fetch(`${this.#config.endpointUrl}/batch`, {
         method: 'POST',
         body: JSON.stringify(payload),
-        headers: this.#config.options.headers || {},
+        headers,
       });
 
       if (!response.ok) {
