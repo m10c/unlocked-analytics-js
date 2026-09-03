@@ -1,5 +1,6 @@
 export type ConfigOptions = {
   headers?: {};
+  credentials?: RequestCredentials;
 };
 
 export type ContextFields = {
@@ -33,6 +34,23 @@ export type ContextFields = {
     version?: string;
   };
   locale?: string;
+  os?: {
+    name?: string;
+    version?: string;
+  };
+  page?: {
+    path?: string;
+    referrer?: string;
+    search?: string;
+    title?: string;
+    url?: string;
+  };
+  screen?: {
+    density?: number;
+    height?: number;
+    width?: number;
+  };
+  timezone?: string;
 };
 
 export type CommonFields = {
