@@ -28,6 +28,10 @@ export default class Analytics {
     this.#config.options = { ...this.#config.options, ...options };
   }
 
+  flush(): Promise<void> {
+    return this.#queue.flush();
+  }
+
   screen(name: string, properties?: {}, options?: CommonFields): void {
     this.#queue.push({
       type: 'screen',
