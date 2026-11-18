@@ -22,7 +22,6 @@ function isNetworkError(err: unknown): boolean {
 export default class Queue {
   #config: Config;
   #queue: AnyCall[] = [];
-  #flushing: boolean = false;
   #flushTimeout: any | null = null;
 
   constructor(config: Config) {
@@ -55,17 +54,18 @@ export default class Queue {
       );
     }
 
-    if (this.#flushing || this.#queue.length === 0) {
+    if (this.#queue.length === 0) {
       return;
     }
 
-    this.#flushing = true;
     if (this.#flushTimeout) {
       clearTimeout(this.#flushTimeout);
       this.#flushTimeout = null;
     }
 
-    const batch = [...this.#queue];
+    // Take the batch out of the queue so overlapping flushes send disjoint events
+    const batch = this.#queue;
+    this.#queue = [];
     const payload = { batch, context: this.#config.context };
     const headers = {
       'Content-Type': 'application/json',
@@ -77,6 +77,8 @@ export default class Queue {
         method: 'POST',
         body: JSON.stringify(payload),
         headers,
+        // Lets the request finish when the page is being unloaded
+        keepalive: true,
         ...(this.#config.options.credentials
           ? { credentials: this.#config.options.credentials }
           : {}),
@@ -85,14 +87,11 @@ export default class Queue {
       if (!response.ok) {
         throw new Error(`Server returned ${response.status}`);
       }
-
-      this.#queue = this.#queue.slice(batch.length);
     } catch (err) {
+      this.#queue = [...batch, ...this.#queue];
       if (!isNetworkError(err)) {
         throw err;
       }
-    } finally {
-      this.#flushing = false;
     }
   };
 }
