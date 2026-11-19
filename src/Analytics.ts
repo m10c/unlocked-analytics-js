@@ -22,6 +22,20 @@ export default class Analytics {
     this.#config.context = context;
   }
 
+  /**
+   * While disabled, track and screen calls are dropped.
+   */
+  setEnabled(enabled: boolean): void {
+    this.#config.enabled = enabled;
+  }
+
+  /**
+   * Properties added to every track and screen call.
+   */
+  setProperties(properties: {}): void {
+    this.#config.properties = properties;
+  }
+
   mergeOptions(options: ConfigOptions): void {
     // Force a flush on old data before the options change
     this.#queue.flush();
@@ -29,20 +43,22 @@ export default class Analytics {
   }
 
   screen(name: string, properties?: {}, options?: CommonFields): void {
+    if (!this.#config.enabled) return;
     this.#queue.push({
       type: 'screen',
       name,
-      ...(properties ? { properties } : {}),
+      properties: { ...this.#config.properties, ...properties },
       ...options,
       timestamp: formatISO(new Date()),
     });
   }
 
   track(event: string, properties?: {}, options?: CommonFields): void {
+    if (!this.#config.enabled) return;
     this.#queue.push({
       type: 'track',
       event,
-      ...(properties ? { properties } : {}),
+      properties: { ...this.#config.properties, ...properties },
       ...options,
       timestamp: formatISO(new Date()),
     });

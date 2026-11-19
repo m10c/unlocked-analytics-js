@@ -5,4 +5,6 @@ export default class Config {
   endpointUrl: string | undefined;
   options: ConfigOptions = {};
   context: ContextFields = {};
+  enabled: boolean = true;
+  properties: {} = {};
 }
